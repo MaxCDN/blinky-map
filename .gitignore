@@ -1,3 +1,5 @@
-node_modules
 .maxcdn.yml
 maxcdn.yml
+node_modules/
+.DS_Store
+npm-debug.log
