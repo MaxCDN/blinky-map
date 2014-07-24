@@ -1,7 +1,8 @@
 var
-	exec = require('child_process').exec,
 	EventEmitter = require('events').EventEmitter,
-	util = require('util');
+	util = require('util'),
+	config = require('maxconf')(),
+	maxcdn = new require('maxcdn')(config.alias, config.token, config.secret);
 
 function MaxCdnitiator() {
 
@@ -27,30 +28,19 @@ function MaxCdnitiator() {
 		setTimeout(that.processData, 750);
 	};
 
-	this.appendData = function(error, stdout) {
-		var data;
-
+	this.appendData = function(error, result) {
 		if (!error) {
-			if (!stdout.length) { return; }
+			if (!result || !result.records || result.records.length < 1) return;
 
-			try {
-				data = JSON.parse(stdout);
-			} catch (ex) {
-				return console.log(ex);
-			}
+			result.records.forEach(function (record) {
+				workqueue.push(record.client_continent);
+			});
 
-			// Loop over data, add individual records to the workqueue.
-			for (var record in data.records) {
-				workqueue.push(data.records[record].client_continent);
-			}
 		}
 	};
 
 	this.getData = function() {
-		exec(
-			'maxcurl "/v3/reporting/logs.json?status=304"',
-			that.appendData
-		);
+		maxcdn.get('v3/reporting/logs.json?status=304', this.appendData);
 	};
 
 	this.init = function() {
